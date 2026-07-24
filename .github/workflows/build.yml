@@ -1,4 +1,4 @@
-name: Compilar APK Vulcanova
+name: Compilar Vulcanova APK
 
 on:
   push:
@@ -19,10 +19,116 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Configurar Entorno Android
-      uses: android-actions/setup-android@v3
+    - name: Preparar Proyecto Nactivo Android
+      run: |
+        mkdir -p android-app/app/src/main/assets
+        mkdir -p android-app/app/src/main/java/com/vulcanova/app
+        
+        # Copiar index.html / Índice.html a la carpeta de la app
+        if [ -f "index.html" ]; then
+          cp index.html android-app/app/src/main/assets/index.html
+        elif [ -f "Índice.html" ]; then
+          cp Índice.html android-app/app/src/main/assets/index.html
+        fi
 
-    - name: Confirmación de Entorno
-      run: echo "Servidor listo para ensamblar Vulcanova Diagnostics"
+        # Crear AndroidManifest.xml
+        cat << 'EOF' > android-app/app/src/main/AndroidManifest.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            package="com.vulcanova.app">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.BLUETOOTH" />
+            <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+            <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+            <application
+                android:allowBackup="true"
+                android:label="Vulcanova Diagnostics"
+                android:supportsRtl="true"
+                android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+                <activity android:name=".MainActivity" android:exported="true">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
+            </application>
+        </manifest>
+        EOF
 
+        # Crear MainActivity.java con WebView full soporte
+        cat << 'EOF' > android-app/app/src/main/java/com/vulcanova/app/MainActivity.java
+        package com.vulcanova.app;
+        import android.os.Bundle;
+        import android.webkit.WebSettings;
+        import android.webkit.WebView;
+        import android.webkit.WebViewClient;
+        import android.app.Activity;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                WebView webView = new WebView(this);
+                WebSettings settings = webView.getSettings();
+                settings.setJavaScriptEnabled(true);
+                settings.setDomStorageEnabled(true);
+                webView.setWebViewClient(new WebViewClient());
+                webView.loadUrl("file:///android_asset/index.html");
+                setContentView(webView);
+            }
+        }
+        EOF
+
+        # Crear build.gradle del modulo
+        cat << 'EOF' > android-app/app/build.gradle
+        plugins {
+            id 'com.android.application'
+        }
+        android {
+            namespace 'com.vulcanova.app'
+            compileSdk 34
+            defaultConfig {
+                applicationId "com.vulcanova.app"
+                minSdk 24
+                targetSdk 34
+                versionCode 1
+                versionName "1.0"
+            }
+        }
+        EOF
+
+        # Crear build.gradle raiz
+        cat << 'EOF' > android-app/build.gradle
+        buildscript {
+            repositories {
+                google()
+                mavenCentral()
+            }
+            dependencies {
+                classpath 'com.android.tools.build:gradle:8.1.1'
+            }
+        }
+        allprojects {
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        EOF
+
+        # Crear settings.gradle
+        cat << 'EOF' > android-app/settings.gradle
+        include ':app'
+        EOF
+
+    - name: Compilar APK con Gradle
+      run: |
+        cd android-app
+        gradle assembleDebug
+
+    - name: Subir APK Generado
+      uses: actions/upload-artifact@v4
+      with:
+        name: Vulcanova-Diagnostics-APK
+        path: android-app/app/build/outputs/apk/debug/app-debug.apk
 
