@@ -3,335 +3,344 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vulcanova Diagnostics</title>
+    <title>Vulcanova MaxiSys Ultra S2 AI</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; user-select: none; }
-        body { background-color: #080c14; color: #f1f5f9; padding-bottom: 70px; min-height: 100vh; }
-        
-        /* HEADER PRINCIPAL */
-        .app-header { background: linear-gradient(180deg, #1e1112 0%, #080c14 100%); padding: 15px; border-bottom: 1px solid #2d1517; text-align: center; position: sticky; top: 0; z-index: 100; }
-        .app-header h1 { font-size: 18px; font-weight: 900; letter-spacing: 2px; color: #ef4444; text-transform: uppercase; }
-        
-        /* BARRA DE ESTADO GLOBAL */
-        .global-status { background-color: #0f172a; border-bottom: 1px solid #1e293b; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: bold; }
-        .status-badge { display: flex; align-items: center; gap: 8px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
-        .dot.online { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
-        .btn-toggle-conn { background: #b91c1c; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
-        .btn-toggle-conn.active { background: #15803d; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; }
+        body { background-color: #060913; color: #f1f5f9; padding-bottom: 75px; min-height: 100vh; overflow-x: hidden; }
 
-        /* NAVEGACIÓN POR PESTAÑAS (BOTTOM NAVBAR) */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background-color: #0f172a; border-top: 1px solid #1e293b; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; font-size: 10px; font-weight: bold; width: 25%; height: 100%; text-decoration: none; cursor: pointer; }
-        .nav-item .icon { font-size: 18px; margin-bottom: 2px; }
-        .nav-item.active { color: #ef4444; border-top: 2px solid #ef4444; background: rgba(239, 68, 68, 0.05); }
+        /* Autel Ultra Header */
+        .autel-header { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); border-bottom: 2px solid #0284c7; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .autel-brand { font-size: 15px; font-weight: 900; letter-spacing: 1.5px; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+        .autel-badge { background: #0284c7; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: bold; }
 
-        /* CONTENEDOR DE PESTAÑAS */
-        .tab-content { display: none; padding: 15px; }
+        /* Voice Assistant Status Bar */
+        .voice-bar { background: #0c1527; border-bottom: 1px solid #1e293b; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
+        .voice-status { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: bold; color: #e2e8f0; }
+        .btn-mic { background: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 10px rgba(2, 132, 199, 0.5); }
+        .btn-mic.listening { background: #ef4444; animation: pulse-mic 1s infinite; box-shadow: 0 0 12px rgba(239, 68, 68, 0.8); }
+
+        @keyframes pulse-mic { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        /* Simulated Virtual Click Highlight */
+        .virtual-cursor { position: fixed; width: 24px; height: 24px; background: rgba(56, 189, 248, 0.8); border: 2px solid #ffffff; border-radius: 50%; z-index: 9999; pointer-events: none; display: none; box-shadow: 0 0 15px #38bdf8; transition: all 0.5s ease-in-out; }
+        .btn-highlight { outline: 3px solid #38bdf8 !important; box-shadow: 0 0 15px #38bdf8 !important; transform: scale(0.98); }
+
+        /* Navigation Bottom Bar */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: #0f172a; border-top: 1px solid #1e293b; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; font-size: 10px; font-weight: bold; width: 20%; height: 100%; cursor: pointer; }
+        .nav-item.active { color: #38bdf8; border-top: 2px solid #38bdf8; background: rgba(56, 189, 248, 0.05); }
+
+        .tab-content { display: none; padding: 12px; }
         .tab-content.active { display: block; }
 
-        /* TARJETAS Y PANELES */
-        .card { background: #131c2e; border: 1px solid #1e293b; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
-        .card-title { font-size: 14px; font-weight: bold; color: #38bdf8; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        
-        /* BOTONES DE ACCIÓN */
-        .btn-action { width: 100%; background: linear-gradient(135deg, #1d4ed8, #1e40af); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .btn-action:active { opacity: 0.8; }
-        .btn-danger { background: linear-gradient(135deg, #b91c1c, #991b1b); }
+        /* Topology Grid */
+        .topology-card { background: #0d1527; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+        .topology-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+        .module-box { background: #162238; border: 2px solid #334155; border-radius: 6px; padding: 10px; text-align: center; }
+        .module-box.ok { border-color: #22c55e; background: rgba(34, 197, 94, 0.1); }
+        .module-box.fault { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .module-box.active-target { border-color: #38bdf8; background: rgba(56, 189, 248, 0.2); box-shadow: 0 0 10px #38bdf8; }
 
-        /* METRICAS Y MEDIDORES (DATOS EN VIVO) */
-        .grid-gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .gauge-card { background: #0b1329; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; text-align: center; }
-        .gauge-value { font-size: 22px; font-weight: 900; color: #22c55e; margin: 5px 0; }
-        .gauge-unit { font-size: 10px; color: #64748b; text-transform: uppercase; }
+        /* Gauges */
+        .grid-gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .gauge-card { background: #090e1a; border: 1px solid #1e293b; border-radius: 6px; padding: 10px; text-align: center; }
+        .gauge-value { font-size: 22px; font-weight: 900; color: #38bdf8; margin: 4px 0; }
 
-        /* CÓDIGOS DE FALLA */
-        .dtc-item { background: #1c1917; border-left: 4px solid #ef4444; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
-        .dtc-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; color: #f87171; }
-        .dtc-body { font-size: 12px; color: #d6d3d1; margin-top: 5px; line-height: 1.4; }
+        /* Buttons */
+        .btn-autel { width: 100%; background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; margin-bottom: 8px; text-transform: uppercase; }
+        .btn-danger { background: linear-gradient(135deg, #dc2626, #991b1b); }
+        .btn-success { background: linear-gradient(135deg, #16a34a, #15803d); }
+        .btn-warning { background: linear-gradient(135deg, #d97706, #b45309); }
 
-        /* FORMULARIOS Y OPCIONES */
-        .select-input { width: 100%; background: #0b1329; border: 1px solid #1e293b; color: white; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; }
-        .alert-off { background: #2a0808; border: 1px solid #7f1d1d; color: #fca5a5; padding: 12px; border-radius: 8px; font-size: 12px; text-align: center; line-height: 1.5; }
+        .vin-box { background: #050914; border: 1px solid #0284c7; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 13px; color: #38bdf8; text-align: center; font-weight: bold; margin: 6px 0; }
+        .console-box { background: #02050a; border: 1px solid #1e293b; height: 90px; padding: 6px; font-family: monospace; font-size: 10px; color: #4ade80; overflow-y: auto; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <!-- HEADER -->
-    <div class="app-header">
-        <h1>Vulcanova Diagnostics</h1>
+    <!-- Cursor para simular clics visuales guiados -->
+    <div class="virtual-cursor" id="virtual-cursor"></div>
+
+    <!-- Autel Header -->
+    <div class="autel-header">
+        <div class="autel-brand">
+            <span>VULCANOVA</span>
+            <span class="autel-badge">ULTRA S2 AI</span>
+        </div>
+        <div style="font-size: 10px; color: #94a3b8; font-weight: bold;" id="sys-clock">00:00</div>
     </div>
 
-    <!-- ESTADO DE CONEXIÓN GLOBAL -->
-    <div class="global-status">
-        <div class="status-badge">
-            <span class="dot" id="global-dot"></span>
-            <span id="global-status-text" style="color: #f87171;">DESCONECTADO</span>
+    <!-- Voice Assistant Control Bar -->
+    <div class="voice-bar">
+        <div class="voice-status">
+            <span>🤖</span>
+            <span id="voice-txt-status" style="color: #38bdf8;">Asistente Vulcanova Activo</span>
         </div>
-        <button class="btn-toggle-conn" id="global-btn-conn" onclick="switchTab('conexion')">CONFIGURAR</button>
+        <button class="btn-mic" id="btn-mic-trigger" onclick="activarEscuchaVoz()">
+            <span>🎤</span>
+            <span id="mic-label">Hablar</span>
+        </button>
     </div>
 
-    <!-- PESTAÑA 1: INICIO (DASHBOARD) -->
-    <div id="tab-inicio" class="tab-content active">
-        <div class="card">
-            <div class="card-title">🚗 Vehículo Actual</div>
-            <p style="font-size: 12px; color: #94a3b8;">Sin lectura de VIN activa. Conecta la interfaz OBD2 para detectar la ECU del vehículo automáticamente.</p>
+    <!-- TAB 1: TOPOLOGÍA -->
+    <div id="tab-topologia" class="tab-content active">
+        <div class="topology-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 12px; font-weight: bold; color: #38bdf8;">🗺️ Árbol de Módulos (Bus CAN)</span>
+                <span style="font-size: 10px; color: #94a3b8;" id="scan-progress">Listo</span>
+            </div>
+            
+            <div class="topology-grid">
+                <div class="module-box ok" id="mod-ecm">
+                    <div style="font-size:11px; font-weight:900;">ECM / PCM</div>
+                    <div style="font-size:9px; color:#22c55e;">MOTOR</div>
+                </div>
+                <div class="module-box ok" id="mod-tcm">
+                    <div style="font-size:11px; font-weight:900;">TCM</div>
+                    <div style="font-size:9px; color:#22c55e;">TRANSMISIÓN</div>
+                </div>
+                <div class="module-box fault" id="mod-abs">
+                    <div style="font-size:11px; font-weight:900;">ABS</div>
+                    <div style="font-size:9px; color:#ef4444;">FRENOS (1 DTC)</div>
+                </div>
+                <div class="module-box ok" id="mod-bcm">
+                    <div style="font-size:11px; font-weight:900;">BCM</div>
+                    <div style="font-size:9px; color:#22c55e;">CARROCERÍA</div>
+                </div>
+            </div>
         </div>
 
-        <button class="btn-action" onclick="ejecutarAutoScan()">🔍 Escaneo General de Módulos</button>
-
-        <div class="card">
-            <div class="card-title">⚡ Resumen de Parámetros</div>
-            <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #1e293b;">
-                <span>Voltaje Batería (OBD):</span>
-                <strong id="dash-volts" style="color:#ef4444;">0.0 V</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #1e293b;">
-                <span>Protocolo CAN:</span>
-                <strong id="dash-proto" style="color:#64748b;">N/A</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0;">
-                <span>Estado Check Engine:</span>
-                <strong id="dash-mil" style="color:#64748b;">Desconocido</strong>
-            </div>
+        <button class="btn-autel btn-success" id="btn-action-autoscan" onclick="guiarYEjecutar('btn-action-autoscan', ejecutarAutoScanTopologia)">⚡ Auto Escaneo Inteligente</button>
+        
+        <div class="topology-card">
+            <div style="font-size: 11px; color: #94a3b8;">Número de Serie VIN:</div>
+            <div class="vin-box" id="display-vin">3FA6P0H77HR123456</div>
+            <button class="btn-autel" id="btn-action-vin" style="background:#334155; padding:6px; font-size:10px;" onclick="guiarYEjecutar('btn-action-vin', solicitarVIN)">Leer VIN de Computadora</button>
         </div>
     </div>
 
-    <!-- PESTAÑA 2: DIAGNÓSTICO (DTC) -->
+    <!-- TAB 2: DIAGNÓSTICO -->
     <div id="tab-diag" class="tab-content">
-        <div class="card">
-            <div class="card-title">📋 Códigos de Falla Almacenados (DTC)</div>
-            <button class="btn-action" onclick="leerCodigosDTC()">Leer Módulo de Motor (Powertrain)</button>
-            <button class="btn-action btn-danger" onclick="borrarCodigosDTC()">🧹 Borrar Fallas / Apagar Check Engine</button>
+        <div class="topology-card">
+            <div style="font-size: 13px; font-weight: bold; color: #38bdf8; margin-bottom: 8px;">📋 Reporte de Fallas Almacenadas</div>
+            <button class="btn-autel" id="btn-action-dtc" onclick="guiarYEjecutar('btn-action-dtc', leerDTCs)">🔍 Leer Códigos de Falla</button>
+            <button class="btn-autel btn-danger" id="btn-action-borrar" onclick="guiarYEjecutar('btn-action-borrar', borrarDTCs)">🧹 Borrar Fallas (Modo 04) / Apagar Check</button>
         </div>
 
         <div id="dtc-container">
-            <div class="alert-off">
-                ⚠️ No hay datos de diagnóstico. Conecta la interfaz y presiona "Leer Módulo" para consultar las fallas de la computadora.
+            <div style="background:#162238; border-left:4px solid #ef4444; padding:10px; border-radius:4px; margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; font-weight:bold; color:#f87171;">
+                    <span>P0121 - Cuerpo de Aceleración</span>
+                    <span style="font-size:9px; background:#7f1d1d; padding:2px 6px; border-radius:3px;">CONFIRMADO</span>
+                </div>
+                <div style="font-size:11px; color:#cbd5e1; margin-top:4px;">Rango/Rendimiento del circuito del sensor de posición del acelerador TPS fuera de tolerancia.</div>
             </div>
         </div>
     </div>
 
-    <!-- PESTAÑA 3: DATOS EN VIVO -->
+    <!-- TAB 3: DATOS EN VIVO -->
     <div id="tab-datos" class="tab-content">
-        <div class="card">
-            <div class="card-title">📊 Lecturas en Tiempo Real</div>
-            <div id="gauges-status-msg" class="alert-off" style="margin-bottom:12px;">
-                Conecta la interfaz para recibir flujo continuo de sensores PID.
+        <div class="topology-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-size:12px; font-weight:bold; color:#38bdf8;">📊 Flujo de PIDs en Tiempo Real</span>
+                <button id="btn-stream" style="background:#16a34a; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold;" onclick="toggleStream()">INICIAR LECTURA</button>
             </div>
-            
+
             <div class="grid-gauges">
                 <div class="gauge-card">
-                    <div style="font-size:11px; color:#94a3b8;">RPM MOTOR</div>
-                    <div class="gauge-value" id="val-rpm">0</div>
-                    <div class="gauge-unit">RPM</div>
+                    <div style="font-size:9px; color:#94a3b8;">RPM MOTOR</div>
+                    <div class="gauge-value" id="pid-rpm">0</div>
+                    <div style="font-size:9px; color:#64748b;">RPM</div>
                 </div>
                 <div class="gauge-card">
-                    <div style="font-size:11px; color:#94a3b8;">TEMP. REFRIGERANTE</div>
-                    <div class="gauge-value" id="val-temp">0</div>
-                    <div class="gauge-unit">°C</div>
+                    <div style="font-size:9px; color:#94a3b8;">TEMP. REFRIGERANTE</div>
+                    <div class="gauge-value" id="pid-temp" style="color:#22c55e;">88</div>
+                    <div style="font-size:9px; color:#64748b;">°C</div>
                 </div>
                 <div class="gauge-card">
-                    <div style="font-size:11px; color:#94a3b8;">VELOCIDAD</div>
-                    <div class="gauge-value" id="val-spd">0</div>
-                    <div class="gauge-unit">KM/H</div>
+                    <div style="font-size:9px; color:#94a3b8;">VOLTAJE BATERÍA</div>
+                    <div class="gauge-value" id="pid-volt" style="color:#eab308;">12.4</div>
+                    <div style="font-size:9px; color:#64748b;">VOLTIOS</div>
                 </div>
                 <div class="gauge-card">
-                    <div style="font-size:11px; color:#94a3b8;">POSICIÓN TPS</div>
-                    <div class="gauge-value" id="val-tps">0</div>
-                    <div class="gauge-unit">%</div>
+                    <div style="font-size:9px; color:#94a3b8;">POSICIÓN TPS</div>
+                    <div class="gauge-value" id="pid-tps" style="color:#ef4444;">28</div>
+                    <div style="font-size:9px; color:#64748b;">% (DESCALIBRADO)</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- PESTAÑA 4: CONEXIÓN Y CONFIGURACIÓN -->
-    <div id="tab-conexion" class="tab-content">
-        <div class="card">
-            <div class="card-title">🔌 Configuración del Puerto</div>
+    <!-- TAB 4: FUNCIONES ESPECIALES / RESETS -->
+    <div id="tab-resets" class="tab-content">
+        <div class="topology-card">
+            <div style="font-size: 13px; font-weight: bold; color: #38bdf8; margin-bottom: 10px;">🛠️ Servicio y Reaprendizaje de Módulos</div>
             
-            <label style="font-size: 11px; color: #94a3b8; display:block; margin-bottom:4px;">Tipo de Interfaz:</label>
-            <select class="select-input" id="select-interface">
-                <option value="bt">Bluetooth (ELM327 / vLinker / OBDLink)</option>
-                <option value="usb">Cable USB OTG (FTDI / CH340 / PL2303)</option>
-                <option value="wifi">Wi-Fi (192.168.0.10:35000)</option>
-            </select>
+            <button class="btn-autel" id="btn-reset-tps" style="background:#1e293b; border:1px solid #38bdf8; text-align:left;" onclick="guiarYEjecutar('btn-reset-tps', () => ejecutarReaprendizajeTPS())">🔄 Reaprendizaje Cuerpo de Aceleración TPS</button>
+            <button class="btn-autel" id="btn-reset-oil" style="background:#1e293b; border:1px solid #38bdf8; text-align:left;" onclick="guiarYEjecutar('btn-reset-oil', () => ejecutarResetAceite())">🛢️ Reseteo Vida de Aceite</button>
+            <button class="btn-autel" id="btn-reset-abs" style="background:#1e293b; border:1px solid #38bdf8; text-align:left;" onclick="guiarYEjecutar('btn-reset-abs', () => ejecutarPurgaABS())">🛑 Purga Electrónica de Frenos ABS</button>
+            
+            <!-- Botón de Seguridad de Restauración -->
+            <button class="btn-autel btn-warning" id="btn-restore-prev" style="margin-top:10px; display:none;" onclick="restaurarValoresAnteriores()">↩️ RESTAURAR VALORES ANTERIORES DE FABRICA</button>
+        </div>
+    </div>
 
-            <label style="font-size: 11px; color: #94a3b8; display:block; margin-bottom:4px;">Protocolo de Comunicación:</label>
-            <select class="select-input" id="select-protocol">
-                <option value="0">0 - AUTOMÁTICO (Recomendado)</option>
-                <option value="6">ISO 15765-4 CAN (11bit ID, 500 kbaud)</option>
-                <option value="7">ISO 15765-4 CAN (29bit ID, 500 kbaud)</option>
-                <option value="1">SAE J1850 PWM (Ford)</option>
-                <option value="2">SAE J1850 VPW (GM)</option>
-                <option value="3">ISO 9141-2 (Chrysler / Europeo)</option>
-            </select>
-
-            <button class="btn-action" id="btn-main-connect" onclick="toggleEstadoConexion()">CONECTAR INTERFAZ</button>
+    <!-- TAB 5: CONEXIÓN -->
+    <div id="tab-conexion" class="tab-content">
+        <div class="topology-card">
+            <div style="font-size: 13px; font-weight: bold; color: #38bdf8; margin-bottom: 8px;">🔌 Conexión VCI / ELM327 OBD2</div>
+            <button class="btn-autel btn-success" id="btn-conn-usb" onclick="guiarYEjecutar('btn-conn-usb', conectarSerial)">🔌 Conectar Vía Cable USB OTG</button>
+            <button class="btn-autel" id="btn-conn-bt" style="background:#2563eb;" onclick="guiarYEjecutar('btn-conn-bt', conectarBT)">📡 Conectar Vía Bluetooth VCI</button>
         </div>
 
-        <div class="card">
-            <div class="card-title">💻 Consola de Comandos AT</div>
-            <div id="console-log" style="background:#050811; border:1px solid #1e293b; height:100px; padding:8px; font-family:monospace; font-size:11px; color:#4ade80; overflow-y:auto; border-radius:6px; margin-bottom:8px;">
-                [SISTEMA] Vulcanova Diagnostics listo.<br>
-                [ESTADO] Esperando enlace con puerto OBD2...
+        <div class="topology-card">
+            <div style="font-size: 11px; font-weight: bold; color: #38bdf8; margin-bottom: 4px;">💻 Consola Terminal RAW</div>
+            <div class="console-box" id="console-log">
+                [VULCANOVA AI] Asistente de voz e interfaz inicializada.<br>
+                [SISTEMA] Diga "Vulcanova" o presione "Hablar" para iniciar comando de voz.
             </div>
         </div>
     </div>
 
-    <!-- BOTTOM NAVBAR -->
+    <!-- NAVBAR INFERIOR -->
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('inicio')" id="nav-inicio">
-            <span class="icon">🏠</span>
-            <span>Inicio</span>
+        <div class="nav-item active" onclick="switchTab('topologia')" id="nav-topologia">
+            <span>🗺️</span><span>Topología</span>
         </div>
         <div class="nav-item" onclick="switchTab('diag')" id="nav-diag">
-            <span class="icon">🔍</span>
-            <span>Diagnóstico</span>
+            <span>🔍</span><span>DTCs</span>
         </div>
         <div class="nav-item" onclick="switchTab('datos')" id="nav-datos">
-            <span class="icon">📊</span>
-            <span>Datos en Vivo</span>
+            <span>📊</span><span>En Vivo</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('resets')" id="nav-resets">
+            <span>🛠️</span><span>Resets</span>
         </div>
         <div class="nav-item" onclick="switchTab('conexion')" id="nav-conexion">
-            <span class="icon">🔌</span>
-            <span>Conexión</span>
+            <span>🔌</span><span>Conexión</span>
         </div>
     </div>
 
     <script>
-        let conectado = false;
+        // SINTETIZADOR DE AUDIO (WEB AUDIO API)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function switchTab(tabId) {
-            // Ocultar todas las pestañas
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        function playBeep(type) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
 
-            // Mostrar la pestaña seleccionada
-            document.getElementById('tab-' + tabId).classList.add('active');
-            document.getElementById('nav-' + tabId).classList.add('active');
+                if (type === 'processing') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.15);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.4);
+                }
+            } catch(e) { console.log(e); }
         }
 
-        function logConsole(msg) {
-            const consoleEl = document.getElementById('console-log');
-            consoleEl.innerHTML += `<br>${msg}`;
-            consoleEl.scrollTop = consoleEl.scrollHeight;
+        // ASISTENTE DE VOZ (TTS)
+        function hablar(texto, callback) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(texto);
+                utterance.lang = 'es-MX';
+                utterance.rate = 1.0;
+                utterance.onend = () => { if (callback) callback(); };
+                window.speechSynthesis.speak(utterance);
+            }
+            document.getElementById('voice-txt-status').innerText = texto;
+            logConsole('ASISTENTE: ' + texto, 'VOICE');
         }
 
-        function toggleEstadoConexion() {
-            conectado = !conectado;
-            
-            const dot = document.getElementById('global-dot');
-            const statusText = document.getElementById('global-status-text');
-            const btnMainConn = document.getElementById('btn-main-connect');
-            const dashVolts = document.getElementById('dash-volts');
-            const dashProto = document.getElementById('dash-proto');
-            const dashMil = document.getElementById('dash-mil');
-            const gaugesMsg = document.getElementById('gauges-status-msg');
+        // RECONOCIMIENTO DE VOZ (STT)
+        let recognition = null;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRec();
+            recognition.lang = 'es-MX';
+            recognition.continuous = false;
 
-            if (conectado) {
-                dot.className = 'dot online';
-                statusText.innerText = 'CONECTADO';
-                statusText.style.color = '#4ade80';
-                btnMainConn.innerText = 'DESCONECTAR INTERFAZ';
-                btnMainConn.style.background = '#b91c1c';
+            recognition.onresult = (event) => {
+                const cmd = event.results[0][0].transcript.toLowerCase();
+                logConsole('COMANDO VOZ: ' + cmd, 'USER');
+                procesarComandoVoz(cmd);
+            };
 
-                dashVolts.innerText = '12.6 V';
-                dashVolts.style.color = '#4ade80';
-                dashProto.innerText = 'ISO 15765-4 CAN';
-                dashProto.style.color = '#38bdf8';
-                dashMil.innerText = 'ENCENDIDO (DTCs Almacenados)';
-                dashMil.style.color = '#ef4444';
+            recognition.onend = () => {
+                document.getElementById('btn-mic-trigger').classList.remove('listening');
+                document.getElementById('mic-label').innerText = "Hablar";
+            };
+        }
 
-                gaugesMsg.style.display = 'none';
-
-                logConsole('[OK] Conexión establecida con interfaz OBD2.');
-                logConsole('[OK] ATZ -> ELM327 v1.5 Identificado.');
-                logConsole('[OK] Bus CAN sincronizado a 500 Kbps.');
+        function activarEscuchaVoz() {
+            if (recognition) {
+                playBeep('processing');
+                document.getElementById('btn-mic-trigger').classList.add('listening');
+                document.getElementById('mic-label').innerText = "Escuchando...";
+                recognition.start();
             } else {
-                dot.className = 'dot';
-                statusText.innerText = 'DESCONECTADO';
-                statusText.style.color = '#f87171';
-                btnMainConn.innerText = 'CONECTAR INTERFAZ';
-                btnMainConn.style.background = 'linear-gradient(135deg, #1d4ed8, #1e40af)';
-
-                dashVolts.innerText = '0.0 V';
-                dashVolts.style.color = '#ef4444';
-                dashProto.innerText = 'N/A';
-                dashProto.style.color = '#64748b';
-                dashMil.innerText = 'Desconocido';
-                dashMil.style.color = '#64748b';
-
-                gaugesMsg.style.display = 'block';
-
-                document.getElementById('val-rpm').innerText = '0';
-                document.getElementById('val-temp').innerText = '0';
-                document.getElementById('val-spd').innerText = '0';
-                document.getElementById('val-tps').innerText = '0';
-
-                logConsole('[INFO] Enlace desconectado por el usuario.');
+                alert('El navegador de tu dispositivo no soporta entrada por voz.');
             }
         }
 
-        function ejecutarAutoScan() {
-            if (!conectado) {
-                alert('⚠️ No hay conexión. Ve a la pestaña Conexión y activa la interfaz primero.');
-                switchTab('conexion');
-                return;
+        // PROCESADOR DE COMANDOS DE VOZ CON ANIMACIÓN GUIADA
+        function procesarComandoVoz(cmd) {
+            if (cmd.includes('conéctate') || cmd.includes('escanear') || cmd.includes('escanea')) {
+                hablar("Iniciando escaneo general de módulos del vehículo.", () => {
+                    switchTab('topologia');
+                    guiarYEjecutar('btn-action-autoscan', ejecutarAutoScanTopologia);
+                });
+            } else if (cmd.includes('cuerpo de aceleración') || cmd.includes('acelerador') || cmd.includes('tps')) {
+                hablar("Dirigiéndome a la sección del cuerpo de aceleración.", () => {
+                    switchTab('resets');
+                    guiarYEjecutar('btn-reset-tps', ejecutarReaprendizajeTPS);
+                });
+            } else if (cmd.includes('transmisión') || cmd.includes('tcm')) {
+                hablar("Consultando estado de la computadora de transmisión TCM.", () => {
+                    switchTab('topologia');
+                    const mod = document.getElementById('mod-tcm');
+                    mod.classList.add('active-target');
+                    setTimeout(() => mod.classList.remove('active-target'), 2000);
+                });
+            } else if (cmd.includes('borrar') || cmd.includes('limpiar fallas')) {
+                hablar("Abriendo menú de borrado de códigos de falla.", () => {
+                    switchTab('diag');
+                    guiarYEjecutar('btn-action-borrar', borrarDTCs);
+                });
+            } else {
+                hablar("No entendí la orden. Puedes pedirme escanear el vehículo, revisar el cuerpo de aceleración o borrar fallas.");
             }
-            alert('🔄 Ejecutando consulta de estado en módulos CAN...');
-            switchTab('diag');
-            leerCodigosDTC();
         }
 
-        function leerCodigosDTC() {
-            const container = document.getElementById('dtc-container');
-            if (!conectado) {
-                container.innerHTML = `
-                    <div class="alert-off">
-                        ⚠️ ERROR: Interfaz desconectada. Conecta el escaner al puerto OBD2 y presiona "Conectar" en la pestaña de Conexión.
-                    </div>
-                `;
-                return;
-            }
+        // SIMULACIÓN DE CLIC GUIADO VISUALMENTE
+        function guiarYEjecutar(elementId, callback) {
+            const target = document.getElementById(elementId);
+            if (!target) return;
 
-            container.innerHTML = `
-                <div class="dtc-item">
-                    <div class="dtc-header">
-                        <span>P0300</span>
-                        <span style="font-size:10px; background:#7f1d1d; color:#fca5a5; padding:2px 6px; border-radius:4px;">CONFIRMADO</span>
-                    </div>
-                    <div class="dtc-body">
-                        <strong>Misfire Múltiple Detectado:</strong> Fallo aleatorio de encendido en cilindros. Inspeccionar bujías, bobinas de ignición o presión de combustible.
-                    </div>
-                </div>
+            const cursor = document.getElementById('virtual-cursor');
+            const rect = target.getBoundingClientRect();
 
-                <div class="dtc-item">
-                    <div class="dtc-header">
-                        <span>P0171</span>
-                        <span style="font-size:10px; background:#7f1d1d; color:#fca5a5; padding:2px 6px; border-radius:4px;">PENDIENTE</span>
-                    </div>
-                    <div class="dtc-body">
-                        <strong>Mezcla Demasiado Pobre (Banco 1):</strong> Exceso de aire o falta de combustible. Inspeccionar fugas de vacío en múltiple de admisión o sensor MAF/O2.
-                    </div>
-                </div>
-            `;
-            logConsole('[OBD] Modo 03 consultado: 2 DTCs encontrados.');
-        }
+            cursor.style.display = 'block';
+            cursor.style.left = (rect.left + rect.width / 2) + 'px';
+            cursor.style.top = (rect.top + rect.height / 2) + 'px';
 
-        function borrarCodigosDTC() {
-            if (!conectado) {
-                alert('⚠️ Imposible borrar códigos sin conexión a la computadora.');
-                return;
-            }
-            document.getElementById('dtc-container').innerHTML = `
-                <div style="background:#064e3b; border:1px solid #047857; color:#a7f3d0; padding:12px; border-radius:8px; font-size:12px; text-align:center;">
-                    ✅ Códigos borrados correctamente (Comando Modo 04). Testigo Check Engine reseteado.
-                </div>
-            `;
-            logConsole('[OBD] Modo 04 enviado: Memoria DTC borrada.');
-        }
-    </script>
-</body>
-                </html>
+            playBeep('processing');
 
+            setTim
