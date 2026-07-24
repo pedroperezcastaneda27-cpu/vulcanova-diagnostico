@@ -2,110 +2,336 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vulcanova Diagnostics Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vulcanova Diagnostics</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0f172a; color: #f8fafc; padding: 15px; }
-        .header { background: linear-gradient(135deg, #b91c1c, #991b1b); padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(185, 28, 28, 0.4); }
-        .header h1 { font-size: 22px; text-transform: uppercase; letter-spacing: 1.5px; }
-        .header p { font-size: 12px; color: #fca5a5; margin-top: 5px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; user-select: none; }
+        body { background-color: #080c14; color: #f1f5f9; padding-bottom: 70px; min-height: 100vh; }
         
-        .status-card { background-color: #1e293b; border: 1px solid #334155; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .status-dot { height: 12px; width: 12px; background-color: #ef4444; border-radius: 50%; display: inline-block; margin-right: 8px; }
-        .status-dot.connected { background-color: #22c55e; }
-
-        .btn-main { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+        /* HEADER PRINCIPAL */
+        .app-header { background: linear-gradient(180deg, #1e1112 0%, #080c14 100%); padding: 15px; border-bottom: 1px solid #2d1517; text-align: center; position: sticky; top: 0; z-index: 100; }
+        .app-header h1 { font-size: 18px; font-weight: 900; letter-spacing: 2px; color: #ef4444; text-transform: uppercase; }
         
-        .grid-brands { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .btn-brand { background-color: #1e293b; border: 1px solid #334155; color: white; padding: 12px; border-radius: 8px; font-weight: bold; text-align: center; cursor: pointer; }
-        .btn-brand.active { border-color: #3b82f6; background-color: #1e3a8a; }
+        /* BARRA DE ESTADO GLOBAL */
+        .global-status { background-color: #0f172a; border-bottom: 1px solid #1e293b; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: bold; }
+        .status-badge { display: flex; align-items: center; gap: 8px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
+        .dot.online { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .btn-toggle-conn { background: #b91c1c; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .btn-toggle-conn.active { background: #15803d; }
 
-        .panel-actions { background-color: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; }
-        .btn-action { background-color: #334155; color: white; width: 100%; padding: 12px; margin-bottom: 10px; border: none; border-radius: 8px; font-weight: 600; text-align: left; padding-left: 15px; }
-        .btn-danger { background-color: #991b1b; color: white; }
+        /* NAVEGACIÓN POR PESTAÑAS (BOTTOM NAVBAR) */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background-color: #0f172a; border-top: 1px solid #1e293b; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; font-size: 10px; font-weight: bold; width: 25%; height: 100%; text-decoration: none; cursor: pointer; }
+        .nav-item .icon { font-size: 18px; margin-bottom: 2px; }
+        .nav-item.active { color: #ef4444; border-top: 2px solid #ef4444; background: rgba(239, 68, 68, 0.05); }
 
-        .console { background-color: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; color: #38bdf8; height: 120px; overflow-y: auto; }
+        /* CONTENEDOR DE PESTAÑAS */
+        .tab-content { display: none; padding: 15px; }
+        .tab-content.active { display: block; }
+
+        /* TARJETAS Y PANELES */
+        .card { background: #131c2e; border: 1px solid #1e293b; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .card-title { font-size: 14px; font-weight: bold; color: #38bdf8; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        
+        /* BOTONES DE ACCIÓN */
+        .btn-action { width: 100%; background: linear-gradient(135deg, #1d4ed8, #1e40af); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-action:active { opacity: 0.8; }
+        .btn-danger { background: linear-gradient(135deg, #b91c1c, #991b1b); }
+
+        /* METRICAS Y MEDIDORES (DATOS EN VIVO) */
+        .grid-gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .gauge-card { background: #0b1329; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; text-align: center; }
+        .gauge-value { font-size: 22px; font-weight: 900; color: #22c55e; margin: 5px 0; }
+        .gauge-unit { font-size: 10px; color: #64748b; text-transform: uppercase; }
+
+        /* CÓDIGOS DE FALLA */
+        .dtc-item { background: #1c1917; border-left: 4px solid #ef4444; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
+        .dtc-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; color: #f87171; }
+        .dtc-body { font-size: 12px; color: #d6d3d1; margin-top: 5px; line-height: 1.4; }
+
+        /* FORMULARIOS Y OPCIONES */
+        .select-input { width: 100%; background: #0b1329; border: 1px solid #1e293b; color: white; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; }
+        .alert-off { background: #2a0808; border: 1px solid #7f1d1d; color: #fca5a5; padding: 12px; border-radius: 8px; font-size: 12px; text-align: center; line-height: 1.5; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>VULCANOVA DIAGNOSTICS</h1>
-        <p>Sistema Avanzado OBD2 / UDS v2026</p>
+    <!-- HEADER -->
+    <div class="app-header">
+        <h1>Vulcanova Diagnostics</h1>
     </div>
 
-    <div class="status-card">
-        <div>
-            <span class="status-dot" id="dot"></span>
-            <span id="status-text">DESCONECTADO (USB OTG / BT)</span>
+    <!-- ESTADO DE CONEXIÓN GLOBAL -->
+    <div class="global-status">
+        <div class="status-badge">
+            <span class="dot" id="global-dot"></span>
+            <span id="global-status-text" style="color: #f87171;">DESCONECTADO</span>
         </div>
-        <button onclick="conectarHW()" style="background:#334155; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px;">Conectar</button>
+        <button class="btn-toggle-conn" id="global-btn-conn" onclick="switchTab('conexion')">CONFIGURAR</button>
     </div>
 
-    <button class="btn-main" onclick="autoVIN()">🚗 AUTO-VIN / ESCANEO RÁPIDO</button>
+    <!-- PESTAÑA 1: INICIO (DASHBOARD) -->
+    <div id="tab-inicio" class="tab-content active">
+        <div class="card">
+            <div class="card-title">🚗 Vehículo Actual</div>
+            <p style="font-size: 12px; color: #94a3b8;">Sin lectura de VIN activa. Conecta la interfaz OBD2 para detectar la ECU del vehículo automáticamente.</p>
+        </div>
 
-    <div class="grid-brands">
-        <div class="btn-brand active" onclick="selectBrand('GM')">GM</div>
-        <div class="btn-brand" onclick="selectBrand('FORD')">FORD</div>
-        <div class="btn-brand" onclick="selectBrand('NISSAN')">NISSAN</div>
+        <button class="btn-action" onclick="ejecutarAutoScan()">🔍 Escaneo General de Módulos</button>
+
+        <div class="card">
+            <div class="card-title">⚡ Resumen de Parámetros</div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #1e293b;">
+                <span>Voltaje Batería (OBD):</span>
+                <strong id="dash-volts" style="color:#ef4444;">0.0 V</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #1e293b;">
+                <span>Protocolo CAN:</span>
+                <strong id="dash-proto" style="color:#64748b;">N/A</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0;">
+                <span>Estado Check Engine:</span>
+                <strong id="dash-mil" style="color:#64748b;">Desconocido</strong>
+            </div>
+        </div>
     </div>
 
-    <div class="panel-actions">
-        <button class="btn-action" onclick="leerCodigos()">🔍 Leer Códigos de Falla (DTC)</button>
-        <button class="btn-action" onclick="datosEnVivo()">📊 Datos en Vivo (Gauges & PIDs)</button>
-        <button class="btn-action btn-danger" onclick="borrarCodigos()">🧹 Borrar Check Engine</button>
+    <!-- PESTAÑA 2: DIAGNÓSTICO (DTC) -->
+    <div id="tab-diag" class="tab-content">
+        <div class="card">
+            <div class="card-title">📋 Códigos de Falla Almacenados (DTC)</div>
+            <button class="btn-action" onclick="leerCodigosDTC()">Leer Módulo de Motor (Powertrain)</button>
+            <button class="btn-action btn-danger" onclick="borrarCodigosDTC()">🧹 Borrar Fallas / Apagar Check Engine</button>
+        </div>
+
+        <div id="dtc-container">
+            <div class="alert-off">
+                ⚠️ No hay datos de diagnóstico. Conecta la interfaz y presiona "Leer Módulo" para consultar las fallas de la computadora.
+            </div>
+        </div>
     </div>
 
-    <div class="console" id="console-log">
-        [SYSTEM] Vulcanova iniciado en terminal móvil.<br>
-        [SYSTEM] Listo para conectar interfaz ELM327 USB / vLinker MC+...
+    <!-- PESTAÑA 3: DATOS EN VIVO -->
+    <div id="tab-datos" class="tab-content">
+        <div class="card">
+            <div class="card-title">📊 Lecturas en Tiempo Real</div>
+            <div id="gauges-status-msg" class="alert-off" style="margin-bottom:12px;">
+                Conecta la interfaz para recibir flujo continuo de sensores PID.
+            </div>
+            
+            <div class="grid-gauges">
+                <div class="gauge-card">
+                    <div style="font-size:11px; color:#94a3b8;">RPM MOTOR</div>
+                    <div class="gauge-value" id="val-rpm">0</div>
+                    <div class="gauge-unit">RPM</div>
+                </div>
+                <div class="gauge-card">
+                    <div style="font-size:11px; color:#94a3b8;">TEMP. REFRIGERANTE</div>
+                    <div class="gauge-value" id="val-temp">0</div>
+                    <div class="gauge-unit">°C</div>
+                </div>
+                <div class="gauge-card">
+                    <div style="font-size:11px; color:#94a3b8;">VELOCIDAD</div>
+                    <div class="gauge-value" id="val-spd">0</div>
+                    <div class="gauge-unit">KM/H</div>
+                </div>
+                <div class="gauge-card">
+                    <div style="font-size:11px; color:#94a3b8;">POSICIÓN TPS</div>
+                    <div class="gauge-value" id="val-tps">0</div>
+                    <div class="gauge-unit">%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PESTAÑA 4: CONEXIÓN Y CONFIGURACIÓN -->
+    <div id="tab-conexion" class="tab-content">
+        <div class="card">
+            <div class="card-title">🔌 Configuración del Puerto</div>
+            
+            <label style="font-size: 11px; color: #94a3b8; display:block; margin-bottom:4px;">Tipo de Interfaz:</label>
+            <select class="select-input" id="select-interface">
+                <option value="bt">Bluetooth (ELM327 / vLinker / OBDLink)</option>
+                <option value="usb">Cable USB OTG (FTDI / CH340 / PL2303)</option>
+                <option value="wifi">Wi-Fi (192.168.0.10:35000)</option>
+            </select>
+
+            <label style="font-size: 11px; color: #94a3b8; display:block; margin-bottom:4px;">Protocolo de Comunicación:</label>
+            <select class="select-input" id="select-protocol">
+                <option value="0">0 - AUTOMÁTICO (Recomendado)</option>
+                <option value="6">ISO 15765-4 CAN (11bit ID, 500 kbaud)</option>
+                <option value="7">ISO 15765-4 CAN (29bit ID, 500 kbaud)</option>
+                <option value="1">SAE J1850 PWM (Ford)</option>
+                <option value="2">SAE J1850 VPW (GM)</option>
+                <option value="3">ISO 9141-2 (Chrysler / Europeo)</option>
+            </select>
+
+            <button class="btn-action" id="btn-main-connect" onclick="toggleEstadoConexion()">CONECTAR INTERFAZ</button>
+        </div>
+
+        <div class="card">
+            <div class="card-title">💻 Consola de Comandos AT</div>
+            <div id="console-log" style="background:#050811; border:1px solid #1e293b; height:100px; padding:8px; font-family:monospace; font-size:11px; color:#4ade80; overflow-y:auto; border-radius:6px; margin-bottom:8px;">
+                [SISTEMA] Vulcanova Diagnostics listo.<br>
+                [ESTADO] Esperando enlace con puerto OBD2...
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVBAR -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('inicio')" id="nav-inicio">
+            <span class="icon">🏠</span>
+            <span>Inicio</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('diag')" id="nav-diag">
+            <span class="icon">🔍</span>
+            <span>Diagnóstico</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('datos')" id="nav-datos">
+            <span class="icon">📊</span>
+            <span>Datos en Vivo</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('conexion')" id="nav-conexion">
+            <span class="icon">🔌</span>
+            <span>Conexión</span>
+        </div>
     </div>
 
     <script>
-        function log(msg) {
-            const c = document.getElementById('console-log');
-            c.innerHTML += `<br>[${new Date().toLocaleTimeString()}] ${msg}`;
-            c.scrollTop = c.scrollHeight;
+        let conectado = false;
+
+        function switchTab(tabId) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            // Mostrar la pestaña seleccionada
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.getElementById('nav-' + tabId).classList.add('active');
         }
 
-        function conectarHW() {
-            document.getElementById('dot').className = 'status-dot connected';
-            document.getElementById('status-text').innerText = 'CONECTADO (Puerto Serie / USB OTG)';
-            log('Hardware detectado en puerto serie USB.');
-            log('Inicializando bus CAN (11bit / 500kbps)... OK');
+        function logConsole(msg) {
+            const consoleEl = document.getElementById('console-log');
+            consoleEl.innerHTML += `<br>${msg}`;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
         }
 
-        function autoVIN() {
-            log('Enviando comando 09 02 (Read VIN)...');
-            setTimeout(() => {
-                log('VIN Detectado: 1G1ZD5ST8DF****** (GM Malibu 2.5L)');
-                log('Librería cargada: GM UDS / CAN Bus 2013-2015');
-            }, 800);
+        function toggleEstadoConexion() {
+            conectado = !conectado;
+            
+            const dot = document.getElementById('global-dot');
+            const statusText = document.getElementById('global-status-text');
+            const btnMainConn = document.getElementById('btn-main-connect');
+            const dashVolts = document.getElementById('dash-volts');
+            const dashProto = document.getElementById('dash-proto');
+            const dashMil = document.getElementById('dash-mil');
+            const gaugesMsg = document.getElementById('gauges-status-msg');
+
+            if (conectado) {
+                dot.className = 'dot online';
+                statusText.innerText = 'CONECTADO';
+                statusText.style.color = '#4ade80';
+                btnMainConn.innerText = 'DESCONECTAR INTERFAZ';
+                btnMainConn.style.background = '#b91c1c';
+
+                dashVolts.innerText = '12.6 V';
+                dashVolts.style.color = '#4ade80';
+                dashProto.innerText = 'ISO 15765-4 CAN';
+                dashProto.style.color = '#38bdf8';
+                dashMil.innerText = 'ENCENDIDO (DTCs Almacenados)';
+                dashMil.style.color = '#ef4444';
+
+                gaugesMsg.style.display = 'none';
+
+                logConsole('[OK] Conexión establecida con interfaz OBD2.');
+                logConsole('[OK] ATZ -> ELM327 v1.5 Identificado.');
+                logConsole('[OK] Bus CAN sincronizado a 500 Kbps.');
+            } else {
+                dot.className = 'dot';
+                statusText.innerText = 'DESCONECTADO';
+                statusText.style.color = '#f87171';
+                btnMainConn.innerText = 'CONECTAR INTERFAZ';
+                btnMainConn.style.background = 'linear-gradient(135deg, #1d4ed8, #1e40af)';
+
+                dashVolts.innerText = '0.0 V';
+                dashVolts.style.color = '#ef4444';
+                dashProto.innerText = 'N/A';
+                dashProto.style.color = '#64748b';
+                dashMil.innerText = 'Desconocido';
+                dashMil.style.color = '#64748b';
+
+                gaugesMsg.style.display = 'block';
+
+                document.getElementById('val-rpm').innerText = '0';
+                document.getElementById('val-temp').innerText = '0';
+                document.getElementById('val-spd').innerText = '0';
+                document.getElementById('val-tps').innerText = '0';
+
+                logConsole('[INFO] Enlace desconectado por el usuario.');
+            }
         }
 
-        function selectBrand(b) {
-            log('Marca seleccionada manualmente: ' + b);
+        function ejecutarAutoScan() {
+            if (!conectado) {
+                alert('⚠️ No hay conexión. Ve a la pestaña Conexión y activa la interfaz primero.');
+                switchTab('conexion');
+                return;
+            }
+            alert('🔄 Ejecutando consulta de estado en módulos CAN...');
+            switchTab('diag');
+            leerCodigosDTC();
         }
 
-        function leerCodigos() {
-            log('Leyendo Modo 03 / Modo 07...');
-            setTimeout(() => {
-                log('DTC Encontrado: P0300 - Misfire Múltiple Detectado');
-            }, 600);
+        function leerCodigosDTC() {
+            const container = document.getElementById('dtc-container');
+            if (!conectado) {
+                container.innerHTML = `
+                    <div class="alert-off">
+                        ⚠️ ERROR: Interfaz desconectada. Conecta el escaner al puerto OBD2 y presiona "Conectar" en la pestaña de Conexión.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="dtc-item">
+                    <div class="dtc-header">
+                        <span>P0300</span>
+                        <span style="font-size:10px; background:#7f1d1d; color:#fca5a5; padding:2px 6px; border-radius:4px;">CONFIRMADO</span>
+                    </div>
+                    <div class="dtc-body">
+                        <strong>Misfire Múltiple Detectado:</strong> Fallo aleatorio de encendido en cilindros. Inspeccionar bujías, bobinas de ignición o presión de combustible.
+                    </div>
+                </div>
+
+                <div class="dtc-item">
+                    <div class="dtc-header">
+                        <span>P0171</span>
+                        <span style="font-size:10px; background:#7f1d1d; color:#fca5a5; padding:2px 6px; border-radius:4px;">PENDIENTE</span>
+                    </div>
+                    <div class="dtc-body">
+                        <strong>Mezcla Demasiado Pobre (Banco 1):</strong> Exceso de aire o falta de combustible. Inspeccionar fugas de vacío en múltiple de admisión o sensor MAF/O2.
+                    </div>
+                </div>
+            `;
+            logConsole('[OBD] Modo 03 consultado: 2 DTCs encontrados.');
         }
 
-        function datosEnVivo() {
-            log('Leyendo PIDs de Motor: RPM, Temp, MAP, O2...');
-        }
-
-        function borrarCodigos() {
-            log('Enviando Modo 04 (Clear DTCs)...');
-            setTimeout(() => {
-                log('Códigos borrados con éxito. Testigo Check Engine apagado.');
-            }, 1000);
+        function borrarCodigosDTC() {
+            if (!conectado) {
+                alert('⚠️ Imposible borrar códigos sin conexión a la computadora.');
+                return;
+            }
+            document.getElementById('dtc-container').innerHTML = `
+                <div style="background:#064e3b; border:1px solid #047857; color:#a7f3d0; padding:12px; border-radius:8px; font-size:12px; text-align:center;">
+                    ✅ Códigos borrados correctamente (Comando Modo 04). Testigo Check Engine reseteado.
+                </div>
+            `;
+            logConsole('[OBD] Modo 04 enviado: Memoria DTC borrada.');
         }
     </script>
 </body>
-  </html>
+                </html>
 
