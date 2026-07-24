@@ -22,30 +22,32 @@ jobs:
     - name: Configurar Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Estructurar Proyecto Nactivo
+    - name: Configurar Gradle
+      uses: gradle/actions/setup-gradle@v3
+
+    - name: Estructurar Proyecto Android
       run: |
+        # 1. Renombrar archivo si tiene acento para evitar errores
+        if [ -f "Índice.html" ]; then
+          mv "Índice.html" index.html
+        fi
+
+        # 2. Crear carpetas
         mkdir -p app/src/main/assets
         mkdir -p app/src/main/java/com/vulcanova/app
 
-        # Copiar archivo HTML
-        if [ -f "index.html" ]; then
-          cp index.html app/src/main/assets/index.html
-        elif [ -f "Índice.html" ]; then
-          cp Índice.html app/src/main/assets/index.html
-        fi
+        # 3. Copiar archivo de la app
+        cp index.html app/src/main/assets/index.html
 
-        # AndroidManifest.xml
+        # 4. Crear AndroidManifest.xml
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"
             package="com.vulcanova.app">
             <uses-permission android:name="android.permission.INTERNET" />
-            <uses-permission android:name="android.permission.BLUETOOTH" />
-            <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
             <application
-                android:label="Vulcanova"
-                android:supportsRtl="true"
-                android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+                android:label="Vulcanova Diagnostics"
+                android:supportsRtl="true">
                 <activity android:name=".MainActivity" android:exported="true">
                     <intent-filter>
                         <action android:name="android.intent.action.MAIN" />
@@ -56,11 +58,10 @@ jobs:
         </manifest>
         EOF
 
-        # MainActivity.java
+        # 5. Crear MainActivity.java
         cat << 'EOF' > app/src/main/java/com/vulcanova/app/MainActivity.java
         package com.vulcanova.app;
         import android.os.Bundle;
-        import android.webkit.WebSettings;
         import android.webkit.WebView;
         import android.webkit.WebViewClient;
         import android.app.Activity;
@@ -69,18 +70,17 @@ jobs:
             @Override
             protected void onCreate(Bundle savedInstanceState) {
                 super.onCreate(savedInstanceState);
-                WebView webView = new WebView(this);
-                WebSettings settings = webView.getSettings();
-                settings.setJavaScriptEnabled(true);
-                settings.setDomStorageEnabled(true);
-                webView.setWebViewClient(new WebViewClient());
-                webView.loadUrl("file:///android_asset/index.html");
-                setContentView(webView);
+                WebView w = new WebView(this);
+                w.getSettings().setJavaScriptEnabled(true);
+                w.getSettings().setDomStorageEnabled(true);
+                w.setWebViewClient(new WebViewClient());
+                w.loadUrl("file:///android_asset/index.html");
+                setContentView(w);
             }
         }
         EOF
 
-        # app/build.gradle
+        # 6. Crear app/build.gradle
         cat << 'EOF' > app/build.gradle
         plugins {
             id 'com.android.application'
@@ -98,7 +98,7 @@ jobs:
         }
         EOF
 
-        # build.gradle raiz
+        # 7. Crear build.gradle raiz
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -106,7 +106,7 @@ jobs:
                 mavenCentral()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:8.0.2'
+                classpath 'com.android.tools.build:gradle:7.4.2'
             }
         }
         allprojects {
@@ -117,23 +117,17 @@ jobs:
         }
         EOF
 
-        # settings.gradle
+        # 8. Crear settings.gradle
         cat << 'EOF' > settings.gradle
         include ':app'
         EOF
 
-        # Aceptar licencias e inicializar wrapper
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-        gradle wrapper
-
     - name: Compilar APK
-      run: |
-        chmod +x gradlew
-        ./gradlew assembleDebug
+      run: gradle assembleDebug
 
-    - name: Subir APK Generado
+    - name: Subir APK
       uses: actions/upload-artifact@v4
       with:
         name: Vulcanova-Diagnostics-APK
         path: app/build/outputs/apk/debug/app-debug.apk
-
+        
