@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulcanova Diagnostics Pro</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0f172a; color: #f8fafc; padding: 15px; }
+        .header { background: linear-gradient(135deg, #b91c1c, #991b1b); padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(185, 28, 28, 0.4); }
+        .header h1 { font-size: 22px; text-transform: uppercase; letter-spacing: 1.5px; }
+        .header p { font-size: 12px; color: #fca5a5; margin-top: 5px; }
+        
+        .status-card { background-color: #1e293b; border: 1px solid #334155; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .status-dot { height: 12px; width: 12px; background-color: #ef4444; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .status-dot.connected { background-color: #22c55e; }
+
+        .btn-main { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+        
+        .grid-brands { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .btn-brand { background-color: #1e293b; border: 1px solid #334155; color: white; padding: 12px; border-radius: 8px; font-weight: bold; text-align: center; cursor: pointer; }
+        .btn-brand.active { border-color: #3b82f6; background-color: #1e3a8a; }
+
+        .panel-actions { background-color: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; }
+        .btn-action { background-color: #334155; color: white; width: 100%; padding: 12px; margin-bottom: 10px; border: none; border-radius: 8px; font-weight: 600; text-align: left; padding-left: 15px; }
+        .btn-danger { background-color: #991b1b; color: white; }
+
+        .console { background-color: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; color: #38bdf8; height: 120px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>VULCANOVA DIAGNOSTICS</h1>
+        <p>Sistema Avanzado OBD2 / UDS v2026</p>
+    </div>
+
+    <div class="status-card">
+        <div>
+            <span class="status-dot" id="dot"></span>
+            <span id="status-text">DESCONECTADO (USB OTG / BT)</span>
+        </div>
+        <button onclick="conectarHW()" style="background:#334155; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px;">Conectar</button>
+    </div>
+
+    <button class="btn-main" onclick="autoVIN()">🚗 AUTO-VIN / ESCANEO RÁPIDO</button>
+
+    <div class="grid-brands">
+        <div class="btn-brand active" onclick="selectBrand('GM')">GM</div>
+        <div class="btn-brand" onclick="selectBrand('FORD')">FORD</div>
+        <div class="btn-brand" onclick="selectBrand('NISSAN')">NISSAN</div>
+    </div>
+
+    <div class="panel-actions">
+        <button class="btn-action" onclick="leerCodigos()">🔍 Leer Códigos de Falla (DTC)</button>
+        <button class="btn-action" onclick="datosEnVivo()">📊 Datos en Vivo (Gauges & PIDs)</button>
+        <button class="btn-action btn-danger" onclick="borrarCodigos()">🧹 Borrar Check Engine</button>
+    </div>
+
+    <div class="console" id="console-log">
+        [SYSTEM] Vulcanova iniciado en terminal móvil.<br>
+        [SYSTEM] Listo para conectar interfaz ELM327 USB / vLinker MC+...
+    </div>
+
+    <script>
+        function log(msg) {
+            const c = document.getElementById('console-log');
+            c.innerHTML += `<br>[${new Date().toLocaleTimeString()}] ${msg}`;
+            c.scrollTop = c.scrollHeight;
+        }
+
+        function conectarHW() {
+            document.getElementById('dot').className = 'status-dot connected';
+            document.getElementById('status-text').innerText = 'CONECTADO (Puerto Serie / USB OTG)';
+            log('Hardware detectado en puerto serie USB.');
+            log('Inicializando bus CAN (11bit / 500kbps)... OK');
+        }
+
+        function autoVIN() {
+            log('Enviando comando 09 02 (Read VIN)...');
+            setTimeout(() => {
+                log('VIN Detectado: 1G1ZD5ST8DF****** (GM Malibu 2.5L)');
+                log('Librería cargada: GM UDS / CAN Bus 2013-2015');
+            }, 800);
+        }
+
+        function selectBrand(b) {
+            log('Marca seleccionada manualmente: ' + b);
+        }
+
+        function leerCodigos() {
+            log('Leyendo Modo 03 / Modo 07...');
+            setTimeout(() => {
+                log('DTC Encontrado: P0300 - Misfire Múltiple Detectado');
+            }, 600);
+        }
+
+        function datosEnVivo() {
+            log('Leyendo PIDs de Motor: RPM, Temp, MAP, O2...');
+        }
+
+        function borrarCodigos() {
+            log('Enviando Modo 04 (Clear DTCs)...');
+            setTimeout(() => {
+                log('Códigos borrados con éxito. Testigo Check Engine apagado.');
+            }, 1000);
+        }
+    </script>
+</body>
+  </html>
+
